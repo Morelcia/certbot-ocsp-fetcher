@@ -2,6 +2,7 @@ import click
 import os
 import pathlib
 import subprocess
+import tempfile
 
 @click.command()
 @click.option(
@@ -42,17 +43,28 @@ def prepare_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
     else:
         return pathlib.Path(".")
 
-def start_in_correct_mode():
-    pass
+def start_in_correct_mode() -> None:
+    temp_output_dir: pathlib.Path = tempfile.TemporaryDirectory()
+
+    responses_fetched: int
+
+    # These two environment variables are set if this script is invoked by
+    # Certbot
+    if "RENEWED_DOMAINS" in os.environ and "RENEWED_LINEAGE" in os.environ:
+        responses_fetched = run_as_deploy_hook(temp_output_dir)
+    else:
+        responses_fetched = run_standalone(temp_output_dir=temp_output_dir)
+
+    print_and_handle_result(responses_fetched)
 
 def exit_on_error():
     pass
 
-def run_standalone():
-    pass
+def run_standalone(temp_output_dir: pathlib.Path):
+    return 0
 
 def run_as_deploy_hook():
-    pass
+    return 0
 
 def check_for_existing_ocsp_response():
     pass
