@@ -1,6 +1,7 @@
 import click
 import os
 import pathlib
+import psutil
 import subprocess
 import tempfile
 
@@ -72,7 +73,16 @@ def check_for_existing_ocsp_response():
 def fetch_ocsp_response():
     pass
 
-def print_and_handle_result():
+def print_and_handle_result(responses_fetched: int) -> None:
+    if responses_fetched > 0:
+        for process in psutil.process_iter():
+            try:
+                process_info = process.as_dict(attrs=['pid', 'name', 'uids'])
+                if process_info.name == "nginx" and process_info.uids(effective) == os.getuid():
+                    # To do: Send SIGHUP to nginx
+                    break
+            except psutil.NoSuchProcess:
+                pass
     pass
 
 if __name__ == '__main__':
