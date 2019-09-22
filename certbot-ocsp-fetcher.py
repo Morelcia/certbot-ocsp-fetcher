@@ -31,11 +31,16 @@ def main(
         certbot_dir: pathlib.Path,
         output_dir: pathlib.Path,
         verbose: bool) -> None:
-    prepare_output_dir()
+    prepare_output_dir(output_dir)
     start_in_correct_mode()
 
-def prepare_output_dir():
-    pass
+def prepare_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
+    if output_dir:
+        # To do: Catch exception when output_dir is not writable, and check if
+        # that is also triggered when the output_dir already exists
+        pathlib.mkdir(output_dir, parents=True, exist_ok=True)
+    else:
+        return pathlib.Path(".")
 
 def start_in_correct_mode():
     pass
