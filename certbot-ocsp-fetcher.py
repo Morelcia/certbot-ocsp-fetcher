@@ -34,7 +34,7 @@ def main(
         output_dir: pathlib.Path,
         verbose: bool) -> None:
     prepare_output_dir(output_dir)
-    start_in_correct_mode()
+    start_in_correct_mode(verbose)
 
 def prepare_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
     if output_dir:
@@ -44,7 +44,7 @@ def prepare_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
     else:
         return pathlib.Path(".")
 
-def start_in_correct_mode() -> None:
+def start_in_correct_mode(verbose: bool) -> None:
     temp_output_dir: pathlib.Path = tempfile.TemporaryDirectory()
 
     responses_fetched: int
@@ -56,7 +56,7 @@ def start_in_correct_mode() -> None:
     else:
         responses_fetched = run_standalone(temp_output_dir=temp_output_dir)
 
-    print_and_handle_result(responses_fetched)
+    print_and_handle_result(responses_fetched=responses_fetched, verbose=verbose)
 
 def exit_on_error():
     pass
@@ -73,13 +73,15 @@ def check_for_existing_ocsp_response():
 def fetch_ocsp_response():
     pass
 
-def print_and_handle_result(responses_fetched: int) -> None:
+def print_and_handle_result(responses_fetched: int, verbose: bool) -> None:
     if responses_fetched > 0:
         for process in psutil.process_iter():
             try:
                 process_info = process.as_dict(attrs=['pid', 'name', 'uids'])
                 if process_info.name == "nginx" and process_info.uids(effective) == os.getuid():
                     # To do: Send SIGHUP to nginx
+                    if verbose:
+                        pass
                     break
             except psutil.NoSuchProcess:
                 pass
