@@ -56,7 +56,8 @@ def start_in_correct_mode(verbose: bool) -> None:
     else:
         responses_fetched = run_standalone(temp_output_dir=temp_output_dir)
 
-    print_and_handle_result(responses_fetched=responses_fetched, verbose=verbose)
+    if responses_fetched > 0:
+        print_and_handle_result(responses_fetched=responses_fetched, verbose=verbose)
 
 def exit_on_error():
     pass
@@ -74,18 +75,22 @@ def fetch_ocsp_response():
     pass
 
 def print_and_handle_result(responses_fetched: int, verbose: bool) -> None:
-    if responses_fetched > 0:
-        for process in psutil.process_iter():
-            try:
-                process_info = process.as_dict(attrs=['pid', 'name', 'uids'])
-                if process_info.name == "nginx" and process_info.uids(effective) == os.getuid():
-                    # To do: Send SIGHUP to nginx
-                    if verbose:
-                        pass
-                    break
-            except psutil.NoSuchProcess:
-                pass
-    pass
+    manage_nginx: bool = False
+    for process in psutil.process_iter():
+        try:
+            process_info = process.as_dict(attrs=['pid', 'name', 'uids'])
+            if process_info.name == "nginx" and process_info.uids(effective) == os.getuid():
+                manage_nginx = True
+                break
+        except psutil.NoSuchProcess:
+            pass
+    if manage_nginx:
+        # To do: Send SIGHUP to nginx
+        if verbose:
+            click.echo("nginx:\t\treloaded", err=True)
+            pass
+    elif verbose:
+        click.echo("nginx:\t\tnot reloaded\tunprivileged, reload manually", err=True)
 
 if __name__ == '__main__':
     main()
