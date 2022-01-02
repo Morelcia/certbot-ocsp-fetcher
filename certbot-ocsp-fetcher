@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+COLORED_STDOUT=false
+COLORED_STDERR=false
+
 # Unofficial Bash strict mode
 set \
   -o errexit \
@@ -52,7 +55,7 @@ check_for_dependencies() {
   fi
 
   if ! { command -v openssl >&- &&
-    [[ $(openssl version || true) =~ ^OpenSSL\ ([[:digit:]]+)\.([[:digit:]]+) ]] &&
+    [[ $(openssl version || true) =~ ^OpenSSL|^LibreSSL\ ([[:digit:]]+)\.([[:digit:]]+) ]] &&
     ((BASH_REMATCH[1] == 1 && \
     BASH_REMATCH[2] >= 1 || \
     BASH_REMATCH[1] > 1)); }; then
@@ -127,13 +130,10 @@ Usage: ${0##*/} [-c/--certbot-dir DIRECTORY] [-f/--force-update] \\
         fi
 
         CERTBOT_DIR=$(
-          realpath \
-            --canonicalize-missing \
-            --relative-base . \
-            -- "${CERTBOT_DIR}"
+          readlink -f "${CERTBOT_DIR}"
           echo x
         )
-        CERTBOT_DIR=${CERTBOT_DIR%??}
+        CERTBOT_DIR=${CERTBOT_DIR}
         shift
         ;;
       -f | --force-update)
@@ -249,10 +249,7 @@ EOSTRING
         fi
 
         OUTPUT_DIR=$(
-          realpath \
-            --canonicalize-missing \
-            --relative-base . \
-            -- "${OUTPUT_DIR}"
+          readlink -f "${OUTPUT_DIR}"
           echo x
         )
         OUTPUT_DIR=${OUTPUT_DIR%??}
@@ -339,7 +336,7 @@ start_in_correct_mode() {
   # Create temporary directory to store OCSP staple file,
   # before having checked the certificate status in the response
   local temp_output_dir
-  temp_output_dir=$(mktemp --directory)
+  temp_output_dir=$(mktemp -d)
   readonly temp_output_dir
   trap "rm -r -- ""${temp_output_dir}" EXIT
 
