@@ -1,1 +1,2 @@
-0	1~7	*	*	*	/usr/local/bin/certbot-ocsp-fetcher -f -o /etc/nginx/ocsp-cache/
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+0	1~7	*	*	*	/usr/local/bin/certbot-ocsp-fetcher -f -o /etc/nginx/ocsp-cache/ >/dev/null 2>&1
